@@ -1,0 +1,137 @@
+{
+    "version": "1.0",
+    "partners": [
+        {
+            "partner_name": "Matkahuolto",
+            "services": [
+                {
+                    "service_name": "Bussipaketti",
+                    "service_code": "mh.mh10"
+                },
+                {
+                    "service_name": "Pikapakettu",
+                    "service_code": "mh.mh20"
+                },
+                {
+                    "service_name": "Jakopaketti",
+                    "service_code": "mh.mh3050"
+                },
+                {
+                    "service_name": "Lähellä-paketti",
+                    "service_code": "mh.mh80"
+                }
+            ]
+        },
+        {
+            "partner_name": "GLS",
+            "services": [
+                {
+                    "service_name": "EuroBusinessPArcel",
+                    "service_code": "mlsfi.glsfiebp"
+                }
+            ]
+        },
+        {
+            "partner_name": "Posti",
+            "services": [
+                {
+                    "service_name": "Postin rahti",
+                    "service_code": "itellalog.pof1"
+                },
+                {
+                    "service_name": "Postipaketti",
+                    "service_code": "posti.po2103"
+                },
+                {
+                    "service_name": "Kotipaketti",
+                    "service_code": "posti.po2104"
+                },
+                {
+                    "service_name": "Pikkupaketti",
+                    "service_code": "posti.po2461"
+                },
+                {
+                    "service_name": "Parcel Connect / Euroopan Kotipaketti",
+                    "service_code": "posti.po2711"
+                },
+                {
+                    "service_name": "Express kotimaa",
+                    "service_code": "posti.po2102"
+                },
+                {
+                    "service_name": "Priority",
+                    "service_code": "posti.itpr"
+                },
+                {
+                    "service_name": "EMS",
+                    "service_code": "posti.2017"
+                },
+                {
+                    "service_name": "Express ulkomaille",
+                    "service_code": "posti.it14i"
+                }
+            ]
+        },
+        {
+            "partner_name": "DB SCHENKER",
+            "services": [
+                {
+                    "service_name": "DB SCHENKERsystem",
+                    "service_code": "kl.klgrp"
+                },
+                {
+                    "service_name": "DB SCHENKERparcel",
+                    "service_code": "sbtlfiexp.sbtlfiexp"
+                },
+                {
+                    "service_name": "Noutopistepaketti",
+                    "service_code": "sbtlfirrex.sbtlfirrex"
+                }
+            ]
+        }, 
+        {
+            "partner_name": "UPS",
+            "services": [
+                {
+                    "service_name": "UPS Expedited",
+                    "service_code": "ups.upsexpdtp"
+                },
+                {
+                    "service_name": "UPS Express",
+                    "service_code": "ups.upsexpp"
+                },
+                {
+                    "service_name": "UPS Express Saver",
+                    "service_code": "ups.upsstdp"
+                }
+            ]
+        },
+        {
+            "partner_name": "Postnord",
+            "services": [
+                {
+                    "service_name": "MyPack",
+                    "service_code": "plscm.p19fi"
+                }
+            ]
+        },
+        {
+            "partner_name": "FedEx",
+            "services": [
+                {
+                    "service_name": "Economy",
+                    "service_code": "fedex.fdxiep"
+                },
+                {
+                    "service_name": "Express",
+                    "service_code": "fedex.fdxipp"
+                }
+            ]
+        } 
+
+
+
+
+    ],
+    "partner_pickup_locations" : []
+}
