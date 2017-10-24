@@ -216,49 +216,7 @@ class ahcopostit extends Module {
         );
     }
 
-    /**
-     *
-     *
-     */
-    public function sendDebugEmail($forced = false) {
-        if (($forced == true) || Configuration::get('A_SI_DEBUG') == 1) {
-            $debug_html = '';
-
-            $cache_file_name = dirname(__FILE__) . '/debug_logs/' . date('Y-m-d_h_i_s') . '___' . time() . '.log.html';
-            $file = @fopen($cache_file_name, 'w+');
-            if (!$file) {
-                return;
-            }
-
-            foreach (self::$debug as $d) {
-                $debug_html = "<pre>\n\n" . print_r($d, true) . "\n\n<pre>\n\n<hr>";
-                @fwrite($file, $debug_html);
-            }
-
-            @fclose($file);
-        }
-    }
-
-    /**
-     * 
-     * @param type $errorObjects
-     */
-    public function errorEMail($errorObjects = null) {
-        if (!$errorObjects) {
-            $this->debug('Sending Report');
-            $errorObjects = self::$debug;
-        }
-        if (!is_string($errorObjects)) {
-            $errorObjects = print_r($errorObjects, true);
-        }
-
-        if (!function_exists('mail')) {
-            return;
-        }
-
-        @mail('info@ahco.fi', 'Prestashop ' . $this->psV() . ' Shipit module ' . $this->version, $errorObjects);
-    }
-
+   
     /**
      *
      * Return Prestashop version.
