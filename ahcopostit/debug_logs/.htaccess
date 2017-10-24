@@ -1,3 +1,0 @@
-order Deny,Allow
-Deny from all
-#Allow from .fi
