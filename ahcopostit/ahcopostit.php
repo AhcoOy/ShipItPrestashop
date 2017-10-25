@@ -39,7 +39,7 @@ class ahcopostit extends Module {
             'default' => 'H$?dzzKrqER+FD*AkRx&I*V"kedekQ=t',
         ),
         'A_SI_API_URL' => array(
-            'label' => 'Shipit API URL',
+            'label' => 'Shipit API URL. Testiosoite on http://apitest.shipit.ax/v1 , tuotantoosoite on https://api.shipit.ax .',
             'default' => 'http://apitest.shipit.ax/v1', //http://apitest.shipit.ax/v1    , https://api.shipit.ax/v1
         ),
         'A_SI_USERID' => array(
