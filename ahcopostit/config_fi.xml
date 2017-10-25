@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <module>
 	<name>ahcopostit</name>
-	<displayName><![CDATA[Shipit core]]></displayName>
+	<displayName><![CDATA[Shipit]]></displayName>
 	<version><![CDATA[1.0.0]]></version>
-	<description><![CDATA[Shipit kirjastomoduuli]]></description>
+	<description><![CDATA[Shipit toimitustapamoduuli></description>
 	<author><![CDATA[Ahco Oy]]></author>
 	<tab><![CDATA[shipping_logistics]]></tab>
 	<is_configurable>1</is_configurable>
