@@ -32,27 +32,32 @@ class ahcopostit extends Module {
     protected $mySettings = array(
         'A_SI_API_KEY' => array(
             'label' => 'Shipit API Key',
-            'default' => 'aTpB2OX/4er0bRa6',
+            'default' => '', // e.g. aTpB2OX/4er0bRa6
+            'required' => true,
         ),
         'A_SI_API_SECRET' => array(
             'label' => 'Shipit API secret',
-            'default' => 'H$?dzzKrqER+FD*AkRx&I*V"kedekQ=t',
+            'default' => '', // e.g. H$?dzzKrqER+FD*AkRx&I*V"kedekQ=t
         ),
         'A_SI_API_URL' => array(
-            'label' => 'Shipit API URL. Testiosoite on http://apitest.shipit.ax/v1 , tuotantoosoite on https://api.shipit.ax .',
-            'default' => 'http://apitest.shipit.ax/v1', //http://apitest.shipit.ax/v1    , https://api.shipit.ax/v1
+            'label' => 'Shipit API URL. Tuotantoosoite on https://api.shipit.ax .',
+            'default' => 'https://api.shipit.ax/', //http://apitest.shipit.ax/v1    , https://api.shipit.ax/v1
+            'required' => true,
         ),
         'A_SI_USERID' => array(
             'label' => 'Shipit käyttäjätunnus',
             'default' => 'shipit',
+            'required' => true,
         ),
         'A_SI_PASSWORD' => array(
             'label' => 'Shipit salasana',
             'default' => 'tulossa',
+            'required' => true,
         ),
         'A_SI_MAX_PICKUP_LCTS' => array(
             'label' => 'Maksimi määrä noutopisteita',
             'default' => '50',
+            'required' => true,
         ),
         'A_SI_T_S_PC' => array(
             'label' => 'API testi, lähettäjän postinumero',
@@ -134,15 +139,6 @@ class ahcopostit extends Module {
             'label' => 'Lähettäjän y.h. SMS puhelinnumero',
             'default' => '0451299998',
         ),
-            //'A_SI_S_BIC' => array(// ``
-            //    'label' => 'Lähettäjän BIC -Tunnus, oletusarvo postiennakkotapauksissa',
-            //    'default' => '',
-            //),
-            //
-        //'A_SI_S_IBAN' => array(// ``
-            //    'label' => 'Lähettäjän IBAN -pankkitili, oletusarvo postiennakkotapauksissa',
-            //    'default' => '',
-            //),
     );
 
     /**
@@ -216,7 +212,6 @@ class ahcopostit extends Module {
         );
     }
 
-   
     /**
      *
      * Return Prestashop version.
@@ -361,24 +356,40 @@ class ahcopostit extends Module {
         $html = '<h1>' . $this->l($this->displayName) . '</h1>';
         $html .= '<h2>' . $this->l('Asetukset') . '</h2>';
         $html .= '<form method="post"><table>';
+        $anySettingsMissing = false;
         foreach ($this->mySettings as $key => $sData) {
+            $fieldValue = Configuration::get($key);
             $html .= '<tr>';
             $html .= '<td><h4>' . $this->l($sData['label']) . ' &nbsp;&nbsp;&nbsp;</h4>';
-            $html .= '<p>' . $this->l('Esimerkiksi') . ' &nbsp; `' . htmlspecialchars($sData['default']) . '` </p> &nbsp; </td>';
-            $html .= '<td> &nbsp; <input id="' . htmlspecialchars($key) . '" name="' . htmlspecialchars($key) . '"  type="text" value="' . htmlspecialchars(Configuration::get($key)) . '"> </td>';
+            if (!empty($sData['default'])) {
+                $html .= '<p>' . $this->l('Esimerkiksi') . ' &nbsp; `' . htmlspecialchars($sData['default']) . '` </p> &nbsp; ';
+            }
+
+            if (isset($sData['required']) && ( $sData['required'] == true)) {
+                $html .= '<p>' . $this->l('Tämä kenttä on pakollinen') . ' </p> &nbsp; ';
+                if (!$fieldValue) {
+                    $anySettingsMissing = true;
+                }
+            }
+
+            $html .= '</td>';
+            $html .= '<td> &nbsp; <input id="' . htmlspecialchars($key) . '" name="' . htmlspecialchars($key) . '"  type="text" value="' . htmlspecialchars($fieldValue) . '"> </td>';
             $html .= '</tr>';
         }
         $html .= '</table>';
         $html .= '<input type="submit" value="' . htmlspecialchars($this->l('Tallenna')) . '" name="asq_module_save" " >';
         $html .= '</form>'
         ;
-        $myMethods = get_class_methods($this);
-        foreach ($myMethods as $myMethod) {
-            if (strpos($myMethod, 'apiTestToHtml') !== 0) {
-                continue;
-            }
 
-            $this->{$myMethod}($html);
+        if ($anySettingsMissing == false) {
+            $myMethods = get_class_methods($this);
+            foreach ($myMethods as $myMethod) {
+                if (strpos($myMethod, 'apiTestToHtml') !== 0) {
+                    continue;
+                }
+
+                $this->{$myMethod}($html);
+            }
         }
 
         if (isset($_GET['ahcodebug'])) {
@@ -435,7 +446,7 @@ class ahcopostit extends Module {
 
         $this->shipItPayLoad['maxPickupLocations'] = Configuration::get('A_SI_MAX_PICKUP_LCTS');
 
-        $client = new ShipitApiClient(trim(Configuration::get('A_SI_API_KEY')), trim(Configuration::get('A_SI_API_SECRET')));
+        $client = new ShipitApiClient(trim(Configuration::get('A_SI_API_KEY')), trim(Configuration::get('A_SI_API_SECRET')), trim(Configuration::get('A_SI_API_URL')));
         $this->debug(array(
             'A_SI_API_KEY' => Configuration::get('A_SI_API_KEY'),
             'A_SI_API_SECRET' => Configuration::get('A_SI_API_SECRET'),
@@ -457,6 +468,7 @@ class ahcopostit extends Module {
         $html .= '<h3> ' . $this->l('Toimitustavat API TEST') . '</h3>';
         if (!isset($test['response']['body']['methods']) || !is_array($test['response']['body']['methods']) || ( $test['response']['body']['methods'] == 0 )) {
             $html .= '<p> ' . $this->l('Toimitustavat API tunnukset ei toimi tai toimitustapoja ei ole saatavilla testi parametreilla') . '</p>';
+            return;
         }
 
         $html .= '<p> ' . $this->l('Toimitustavat API testi palauti seuraavat toimitustavat:') . '</p><ul>';
@@ -488,7 +500,7 @@ class ahcopostit extends Module {
      *  any sender / receiver nor parcel information.
      */
     public function getListMethods() {
-        $client = new ShipitApiClient(trim(Configuration::get('A_SI_API_KEY')), trim(Configuration::get('A_SI_API_SECRET')));
+        $client = new ShipitApiClient(trim(Configuration::get('A_SI_API_KEY')), trim(Configuration::get('A_SI_API_SECRET')), trim(Configuration::get('A_SI_API_URL')));
         $list = $client->payload()->get("list-methods");
         $this->debug(array(__FUNCTION__, __LINE__,
             'list' => $list));
@@ -506,6 +518,7 @@ class ahcopostit extends Module {
         $html .= '<h3>' . $this->l('Kaikki toimitustavat testi') . '</h3>';
         if (!isset($test['response']['body']) || !is_array($test['response']['body']) || ( $test['response']['body'] == 0 )) {
             $html .= '<p> ' . $this->l('Toimitustavat API tunnukset ei toimi tai toimitustapoja ei ole saatavilla testi parametreilla') . '</p>';
+            return;
         }
 
         $html .= '<p> ' . $this->l('Kaikki toimitustavat API testi palauti seuraavat toimitustavat:') . '</p><ul>';
@@ -631,7 +644,7 @@ class ahcopostit extends Module {
         }
 
         $this->shipItPayLoad = $shipment;
-        $client = new ShipitApiClient(trim(Configuration::get('A_SI_API_KEY')), trim(Configuration::get('A_SI_API_SECRET')));
+        $client = new ShipitApiClient(trim(Configuration::get('A_SI_API_KEY')), trim(Configuration::get('A_SI_API_SECRET')), trim(Configuration::get('A_SI_API_URL')));
         $shipmentResponse = $client->payload($this->shipItPayLoad)->put('shipment');
         $this->shipItPayLoad = array();
 

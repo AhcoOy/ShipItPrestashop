@@ -14,7 +14,7 @@ class ShipitApiClient {
     /**
      * API URL
      */
-    const URL = "http://apitest.shipit.ax/";
+    protected $url = "http://apitest.shipit.ax/";
 
     /**
      * Request methods.
@@ -57,12 +57,19 @@ class ShipitApiClient {
      *
      * @param string $key     API key
      * @param string $secret  API secret
+     * * @param string $url  API Url
      * @param string $version [optional] API version, defaults to v1.
      */
-    public function __construct(string $key, string $secret, string $version = "v1") {
+    public function __construct(string $key, string $secret, $url, string $version = "v1") {
         $this->key = $key;
         $this->secret = $secret;
         $this->version = $version;
+        $this->url = $url;
+    }
+
+    public function setApiUrl($url) {
+        $this->url = $url;
+        return $this;
     }
 
     /**
@@ -137,7 +144,7 @@ class ShipitApiClient {
      * @return array Array with request details and response header and body.
      */
     public function execute(string $endpoint, array $options = []): array {
-        $url = self::URL . $this->version . "/" . $endpoint;
+        $url = $this->url . $this->version . "/" . $endpoint;
         $ch = curl_init();
         $options = array_replace_recursive(
                 [
