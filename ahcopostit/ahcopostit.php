@@ -95,6 +95,10 @@ class ahcopostit extends Module {
             'label' => 'API testi, paketin korkeus',
             'default' => '0.25',
         ),
+        'A_SI_IS_COMPANY' => array(//  `sender_name`
+            'label' => 'Onko lähettäjä yritys, 1 = kyllä, 0 = ei.',
+            'default' => '1',
+        ),
         'A_SI_SENDER_NAME' => array(//  `sender_name`
             'label' => 'Lähettäjän Nimi',
             'default' => 'Ahco Oy',
@@ -155,7 +159,7 @@ class ahcopostit extends Module {
     public function __construct() {
         $this->name = 'ahcopostit';
         $this->tab = 'shipping_logistics';
-        $this->version = '1.0';
+        $this->version = '1.0.1';
         $this->author = 'Ahco / Heikki Pals';
         $this->need_instance = 0;
         $this->displayName = $this->l('Shipit');
@@ -196,14 +200,14 @@ class ahcopostit extends Module {
                     '_GET' => $_GET,
                     '_POST' => $_POST,
                     '_SERVER' => $_SERVER,
-                    'employee_name' => $this->context->employee->firstname . ' ' . $this->context->employee->lastname,
-                    'employee_email' => $this->context->employee->email
+                    'employee_name' => isset($this->context->employee->email) ? ( $this->context->employee->firstname . ' ' . $this->context->employee->lastname) : 'n/a',
+                    'employee_email' => isset($this->context->employee->email) ? $this->context->employee->email : 'n/a'
                 ),
             );
         }
 
         if (is_string($mixed_object)) {
-            $mixed_object = htmlspecialchars($mixed_object);
+            $mixed_object = $mixed_object;
         }
 
         self::$debug[] = array(
@@ -1044,68 +1048,98 @@ class ahcopostit extends Module {
         $html .= '<form action="' . $_SERVER['REQUEST_URI'] . '"  method="POST" >' . "\n\t";
         $html .= '<table>' . "\n\t";
 
-        $html .= '<tr><td>' . $this->l('Lähettäjän sähköposti') . '</td> '
+        $html .= '<tr><td>' . htmlspecialchars($this->l('Lähettäjän sähköposti')) . '</td> '
                 . '<td><input type="text" name="shipit[sender][email]"  value="'
                 . htmlspecialchars($posted['shipit']['sender']['email'])
                 . '" ></td>'
                 . '</tr>' . "\n\t";
         $html .= '<tr>'
-                . '<td>' . $this->l('Lähettäjän nimi') . '</td> '
+                . '<td>' . htmlspecialchars($this->l('Lähettäjän nimi')) . '</td> '
                 . '<td>'
                 . '<input type="text"  name="shipit[sender][name]"   value="'
                 . htmlspecialchars($posted['shipit']['sender']['name']) . '" >'
                 . '</td>'
                 . '</tr>' . "\n\t";
+        
+        $html .= '<tr>'
+                . '<td>' . htmlspecialchars($this->l('Lähettäjä on yritys ')) . '</td> '
+                . '<td>'
+                . '<select name="shipit[sender][isCompany]"  >'
+                . '<option value="1" ' . ( ($posted['shipit']['sender']['isCompany'] == 1) ? 'selected' : '' ) . ' >' . htmlspecialchars($this->l('Kyllä')) . '</option>'
+                . '<option value="0" ' . ( ($posted['shipit']['sender']['isCompany'] == 0) ? 'selected' : '' ) . ' >' . htmlspecialchars($this->l('Ei')) . '</option>'
+                . '</select>'
+                . '</td>'
+                . '</tr>' . "\n\t";
 
         $html .= '<tr>'
-                . '<td>' . $this->l('Lähettäjän puhnro.') . '</td> '
+                . '<td>' . htmlspecialchars($this->l('Lähettäjän yhteyshenkilö, jos lähettäjä on yritys')) . '</td> '
+                . '<td>'
+                . '<input type="text"  name="shipit[sender][contactPerson]"   value="'
+                . htmlspecialchars($posted['shipit']['sender']['contactPerson']) . '" >'
+                . '</td>'
+                . '</tr>' . "\n\t";
+
+        $html .= '<tr>'
+                . '<td>' . htmlspecialchars($this->l('Lähettäjän puhnro.')) . '</td> '
                 . '<td>'
                 . '<input type="text"  name="shipit[sender][phone]"   value="'
                 . htmlspecialchars($posted['shipit']['sender']['phone']) . '" >'
                 . '</td>'
                 . '</tr>' . "\n\t";
         $html .= '<tr>'
-                . '<td>' . $this->l('Lähettäjän osoiterivi 1') . '</td> '
+                . '<td>' . htmlspecialchars($this->l('Lähettäjän osoiterivi 1')) . '</td> '
                 . '<td>'
                 . '<input type="text"  name="shipit[sender][address]"   value="'
                 . htmlspecialchars($posted['shipit']['sender']['address']) . '" >'
                 . '</td>'
                 . '</tr>' . "\n\t";
         $html .= '<tr>'
-                . '<td>' . $this->l('Lähettäjän osoiterivi 2') . '</td> '
+                . '<td>' . htmlspecialchars($this->l('Lähettäjän osoiterivi 2')) . '</td> '
                 . '<td>'
-                . '<input type="text"  name="shipit[sender][addres2]"   value="'
-                . htmlspecialchars($posted['shipit']['sender']['addres2']) . '" >'
+                . '<input type="text"  name="shipit[sender][address2]"   value="'
+                . htmlspecialchars($posted['shipit']['sender']['address2']) . '" >'
                 . '</td>'
                 . '</tr>' . "\n\t";
         $html .= '<tr>'
-                . '<td>' . $this->l('Lähettäjän postinumero') . '</td> '
+                . '<td>' . htmlspecialchars($this->l('Lähettäjän postinumero')) . '</td> '
                 . '<td>'
                 . '<input type="text"  name="shipit[sender][postcode]"   value="'
                 . htmlspecialchars($posted['shipit']['sender']['postcode']) . '" >'
                 . '</td>'
                 . '</tr>' . "\n\t";
         $html .= '<tr>'
-                . '<td>' . $this->l('Lähettäjän maa') . '</td> '
+                . '<td>' . htmlspecialchars($this->l('Lähettäjän maa')) . '</td> '
                 . '<td>'
                 . '<input type="text"  name="shipit[sender][country]"   value="'
                 . htmlspecialchars($posted['shipit']['sender']['country']) . '" >'
                 . '</td>'
                 . '</tr>' . "\n\t";
         $html .= '<tr>'
-                . '<td>' . $this->l('Lähettäjän Kaupunki ') . '</td> '
+                . '<td>' . htmlspecialchars($this->l('Lähettäjän Kaupunki ')) . '</td> '
                 . '<td>'
                 . '<input type="text"  name="shipit[sender][city]"   value="'
                 . htmlspecialchars($posted['shipit']['sender']['city']) . '" >'
                 . '</td>'
                 . '</tr>' . "\n\t";
 
+        // -------------------------- vastaanottajan tiedot ------------------------------
 
-        $html .= '<tr><td>' . $this->l('Vastaanottajan sähköposti') . '</td> '
+        $html .= '<tr><td>' . htmlspecialchars($this->l('Vastaanottajan sähköposti')) . '</td> '
                 . '<td><input type="text" name="shipit[receiver][email]"  value="'
                 . htmlspecialchars($posted['shipit']['receiver']['email'])
                 . '" ></td>'
                 . '</tr>' . "\n\t";
+        
+          $html .= '<tr>'
+                . '<td>' . htmlspecialchars($this->l('Vastaanottaja on yritys ')) . '</td> '
+                . '<td>'
+                . '<select name="shipit[receiver][isCompany]"  >'
+                . '<option value="1" ' . ( ($posted['shipit']['receiver']['isCompany'] == 1) ? 'selected' : '' ) . ' >' . htmlspecialchars($this->l('Kyllä')) . '</option>'
+                . '<option value="0" ' . ( ($posted['shipit']['receiver']['isCompany'] == 0) ? 'selected' : '' ) . ' >' . htmlspecialchars($this->l('Ei')) . '</option>'
+                . '</select>'
+                . '</td>'
+                . '</tr>' . "\n\t";
+
         $html .= '<tr>'
                 . '<td>' . $this->l('Vastaanottajan nimi') . '</td> '
                 . '<td>'
@@ -1114,43 +1148,52 @@ class ahcopostit extends Module {
                 . '</td>'
                 . '</tr>' . "\n\t";
 
+
         $html .= '<tr>'
-                . '<td>' . $this->l('Vastaanottajan puhnro.') . '</td> '
+                . '<td>' . htmlspecialchars($this->l('Vastaanottajan yhteyshenkilö, jos lähettäjä on yritys')) . '</td> '
+                . '<td>'
+                . '<input type="text"  name="shipit[receiver][contactPerson]"   value="'
+                . htmlspecialchars($posted['shipit']['receiver']['contactPerson']) . '" >'
+                . '</td>'
+                . '</tr>' . "\n\t";
+
+        $html .= '<tr>'
+                . '<td>' . htmlspecialchars($this->l('Vastaanottajan puhnro.')) . '</td> '
                 . '<td>'
                 . '<input type="text"  name="shipit[receiver][phone]"   value="'
                 . htmlspecialchars($posted['shipit']['receiver']['phone']) . '" >'
                 . '</td>'
                 . '</tr>' . "\n\t";
         $html .= '<tr>'
-                . '<td>' . $this->l('Vastaanottajan osoiterivi 1') . '</td> '
+                . '<td>' . htmlspecialchars($this->l('Vastaanottajan osoiterivi 1')) . '</td> '
                 . '<td>'
                 . '<input type="text"  name="shipit[receiver][address]"   value="'
                 . htmlspecialchars($posted['shipit']['receiver']['address']) . '" >'
                 . '</td>'
                 . '</tr>' . "\n\t";
         $html .= '<tr>'
-                . '<td>' . $this->l('Vastaanottajan osoiterivi 2') . '</td> '
+                . '<td>' . htmlspecialchars($this->l('Vastaanottajan osoiterivi 2')) . '</td> '
                 . '<td>'
-                . '<input type="text"  name="shipit[receiver][addres2]"   value="'
-                . htmlspecialchars($posted['shipit']['receiver']['addres2']) . '" >'
+                . '<input type="text"  name="shipit[receiver][address2]"   value="'
+                . htmlspecialchars($posted['shipit']['receiver']['address2']) . '" >'
                 . '</td>'
                 . '</tr>' . "\n\t";
         $html .= '<tr>'
-                . '<td>' . $this->l('Vastaanottajan postinumero') . '</td> '
+                . '<td>' . htmlspecialchars($this->l('Vastaanottajan postinumero')) . '</td> '
                 . '<td>'
                 . '<input type="text"  name="shipit[receiver][postcode]"   value="'
                 . htmlspecialchars($posted['shipit']['receiver']['postcode']) . '" >'
                 . '</td>'
                 . '</tr>' . "\n\t";
         $html .= '<tr>'
-                . '<td>' . $this->l('Vastaanottajan maa') . '</td> '
+                . '<td>' . htmlspecialchars($this->l('Vastaanottajan maa')) . '</td> '
                 . '<td>'
                 . '<input type="text"  name="shipit[receiver][country]"   value="'
                 . htmlspecialchars($posted['shipit']['receiver']['country']) . '" >'
                 . '</td>'
                 . '</tr>' . "\n\t";
         $html .= '<tr>'
-                . '<td>' . $this->l('Vastaanottajan Kaupunki ') . '</td> '
+                . '<td>' . htmlspecialchars($this->l('Vastaanottajan Kaupunki ')) . '</td> '
                 . '<td>'
                 . '<input type="text"  name="shipit[receiver][city]"   value="'
                 . htmlspecialchars($posted['shipit']['receiver']['city']) . '" >'
@@ -1166,7 +1209,7 @@ class ahcopostit extends Module {
             ////////// tyyppi
             $html .= '  <tr>' . "\n\t";
             $html .= '          <td>' . "\n\t";
-            $html .= ($np + 1) . '. ' . $this->l('Paketin tyyppi');
+            $html .= ($np + 1) . '. ' . htmlspecialchars($this->l('Paketin tyyppi'));
             $html .= '          </td>' . "\n\t";
             $html .= '          <td>' . "\n\t";
             if (!isset($posted['shipit']['parcels'][$np]['type'])) {
@@ -1223,7 +1266,7 @@ class ahcopostit extends Module {
             }
             $html .= '  <tr>' . "\n\t";
             $html .= '          <td>' . "\n\t";
-            $html .= ($np + 1) . '. ' . $this->l('Paketin pituus');
+            $html .= ($np + 1) . '. ' . htmlspecialchars($this->l('Paketin pituus'));
             $html .= '          </td>' . "\n\t";
             $html .= '          <td>' . "\n\t";
             if (!isset($posted['shipit']['parcels'][$np]['length'])) {
@@ -1241,7 +1284,7 @@ class ahcopostit extends Module {
             }
             $html .= '  <tr>' . "\n\t";
             $html .= '          <td>' . "\n\t";
-            $html .= ($np + 1) . '. ' . $this->l('Paketin korkeus');
+            $html .= ($np + 1) . '. ' . htmlspecialchars($this->l('Paketin korkeus'));
             $html .= '          </td>' . "\n\t";
             $html .= '          <td>' . "\n\t";
             if (!isset($posted['shipit']['parcels'][$np]['height'])) {
@@ -1259,7 +1302,7 @@ class ahcopostit extends Module {
                 . '</tr>' . "\n\t";
 
         $html .= '<tr>'
-                . '<td>' . $this->l('Kuljetusyhtiö ja palvelu') . '</td> '
+                . '<td>' . htmlspecialchars($this->l('Kuljetusyhtiö ja palvelu')) . '</td> '
                 . '<td>';
         $html .= ' <select id="ahco_shipit_service_selector" name="shipit[serviceId]"  >';
         foreach ($shipItservices['partners'] as $partner) {
@@ -1375,24 +1418,26 @@ class ahcopostit extends Module {
                 'sender' => array(
                     'email' => Configuration::get('A_SI_S_CP_EM'),
                     'name' => Configuration::get('A_SI_SENDER_NAME'),
+                    'contactPerson' => Configuration::get('A_SI_S_CP'),
                     'phone' => Configuration::get('A_SI_S_CP_P'),
                     'address' => Configuration::get('A_SI_S_A1'),
-                    'addres2' => Configuration::get('A_SI_S_A2'),
+                    'address2' => Configuration::get('A_SI_S_A2'),
                     'postcode' => Configuration::get('A_SI_S_PC'),
                     'country' => Configuration::get('A_SI_S_C'),
                     'city' => Configuration::get('A_SI_S_CITY'),
+                    'isCompany' => (Configuration::get('A_SI_IS_COMPANY') == "1") ? 1 : 0,
                 ),
                 'receiver' => array(
                     'email' => $orderCustomer->email,
-                    'name' => $orderDeliveryAddress->company
-                    . ' ' . $orderDeliveryAddress->firstname
-                    . ' ' . $orderDeliveryAddress->lastname,
+                    'name' => strlen($orderDeliveryAddress->company) ? $orderDeliveryAddress->company : ( $orderDeliveryAddress->firstname . ' ' . $orderDeliveryAddress->lastname),
+                    'contactPerson' => strlen($orderDeliveryAddress->company) ?  $orderDeliveryAddress->firstname . ' ' . $orderDeliveryAddress->lastname : '',
                     'phone' => $phoneNumber,
                     'address' => $orderDeliveryAddress->address1,
-                    'addres2' => $orderDeliveryAddress->address2,
+                    'address2' => $orderDeliveryAddress->address2,
                     'postcode' => $orderDeliveryAddress->postcode,
                     'country' => $country->iso_code,
                     'city' => $orderDeliveryAddress->city,
+                    'isCompany' => strlen($orderDeliveryAddress->company) ? 1 : 0,
                 ),
                 'parcels' => array(
                     0 => array(
