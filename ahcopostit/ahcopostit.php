@@ -41,7 +41,7 @@ class ahcopostit extends Module {
         ),
         'A_SI_API_URL' => array(
             'label' => 'Shipit API URL. Tuotantoosoite on https://api.shipit.ax .',
-            'default' => 'https://api.shipit.ax/', //http://apitest.shipit.ax/v1    , https://api.shipit.ax/v1
+            'default' => 'https://api.shipit.ax/', //http://apitest.shipit.ax/  , https://api.shipit.ax/
             'required' => true,
         ),
         'A_SI_USERID' => array(
@@ -642,8 +642,11 @@ class ahcopostit extends Module {
             unset($shipment['pickupId']);
         }
 
+        $shipment['sender']['isCompany'] = boolval($shipment['sender']['isCompany']);
+        $shipment['receiver']['isCompany'] = boolval($shipment['receiver']['isCompany']);
+
         if ($this->validateShipmentService($shipment, $htmlResponse) == false) {
-            $htmlResponse .= '<p class="error" >' . $this->l('Palvelu ei ole mahdollista tämän lälhetyksen yhteydessä.') . '</p>';
+            $htmlResponse .= '<p class="error" >' . $this->l('Palvelu ei ole mahdollista tämän lähetyksen yhteydessä.') . '</p>';
             return;
         }
 
@@ -1060,7 +1063,7 @@ class ahcopostit extends Module {
                 . htmlspecialchars($posted['shipit']['sender']['name']) . '" >'
                 . '</td>'
                 . '</tr>' . "\n\t";
-        
+
         $html .= '<tr>'
                 . '<td>' . htmlspecialchars($this->l('Lähettäjä on yritys ')) . '</td> '
                 . '<td>'
@@ -1129,8 +1132,8 @@ class ahcopostit extends Module {
                 . htmlspecialchars($posted['shipit']['receiver']['email'])
                 . '" ></td>'
                 . '</tr>' . "\n\t";
-        
-          $html .= '<tr>'
+
+        $html .= '<tr>'
                 . '<td>' . htmlspecialchars($this->l('Vastaanottaja on yritys ')) . '</td> '
                 . '<td>'
                 . '<select name="shipit[receiver][isCompany]"  >'
@@ -1430,7 +1433,7 @@ class ahcopostit extends Module {
                 'receiver' => array(
                     'email' => $orderCustomer->email,
                     'name' => strlen($orderDeliveryAddress->company) ? $orderDeliveryAddress->company : ( $orderDeliveryAddress->firstname . ' ' . $orderDeliveryAddress->lastname),
-                    'contactPerson' => strlen($orderDeliveryAddress->company) ?  $orderDeliveryAddress->firstname . ' ' . $orderDeliveryAddress->lastname : '',
+                    'contactPerson' => strlen($orderDeliveryAddress->company) ? $orderDeliveryAddress->firstname . ' ' . $orderDeliveryAddress->lastname : '',
                     'phone' => $phoneNumber,
                     'address' => $orderDeliveryAddress->address1,
                     'address2' => $orderDeliveryAddress->address2,
