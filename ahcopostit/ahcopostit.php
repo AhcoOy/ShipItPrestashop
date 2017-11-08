@@ -712,11 +712,11 @@ class ahcopostit extends Module {
 
             $dbArray = [
                 'id' => null,
-                'id_order' => $prestasShopOrderID,
-                'tracking_code' => $sendShipmentResponse['response']['body']['trackingNumber'],
-                'shipit_order_id' => $sendShipmentResponse['response']['body']['orderId'],
-                'json_interaction' => json_encode($sendShipmentResponse),
-                'pdf_base64' => base64_encode($pdfResponse),
+                'id_order' => pSQL($prestasShopOrderID),
+                'tracking_code' => pSQL($sendShipmentResponse['response']['body']['trackingNumber']),
+                'shipit_order_id' => pSQL($sendShipmentResponse['response']['body']['orderId']),
+                'json_interaction' => pSQL(json_encode($sendShipmentResponse)),
+                'pdf_base64' => pSQL(base64_encode($pdfResponse)),
                 'created' => date('Y-m-d H:i:s'),
                 'modified' => date('Y-m-d H:i:s')
             ];
