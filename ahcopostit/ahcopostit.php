@@ -84,16 +84,16 @@ class ahcopostit extends Module {
             'default' => '1',
         ),
         'A_SI_T_P_W' => array(
-            'label' => 'API testi, paketin leveys',
-            'default' => '0.25',
+            'label' => 'API testi, oletus paketin leveys (m)',
+            'default' => '0.35',
         ),
         'A_SI_T_P_L' => array(
-            'label' => 'API testi, paketin pituus',
-            'default' => '0.25',
+            'label' => 'API testi, oletus paketin pituus (m)',
+            'default' => '0.23',
         ),
         'A_SI_T_P_H' => array(
-            'label' => 'API testi, paketin korkeus',
-            'default' => '0.25',
+            'label' => 'API testi, oletus paketin korkeus (m)',
+            'default' => '0.03',
         ),
         'A_SI_IS_COMPANY' => array(//  `sender_name`
             'label' => 'Onko lähettäjä yritys, 1 = kyllä, 0 = ei.',
@@ -1446,9 +1446,9 @@ class ahcopostit extends Module {
                     0 => array(
                         'type' => 'PACKAGE',
                         'weight' => $totalWeight,
-                        'width' => 0.25,
-                        'length' => 0.25,
-                        'height' => 0.25,
+                        'width' => Configuration::get('A_SI_T_P_W'), // API testi, oletus paketin leveys (m) , 0.35
+                        'length' => Configuration::get('A_SI_T_P_L'), // API testi, oletus paketin pituus (m) , 0.23
+                        'height' => Configuration::get('A_SI_T_P_H'), // API testi, oletus paketin korkeus (m) , 0.03
                     )
                 ),
                 'serviceId' => '',
