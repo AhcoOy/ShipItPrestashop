@@ -84,16 +84,16 @@ class ahcopostit extends Module {
             'default' => '1',
         ),
         'A_SI_T_P_W' => array(
-            'label' => 'API testi, oletus paketin leveys (m)',
-            'default' => '0.35',
+            'label' => 'API testi, oletus paketin leveys (cm)',
+            'default' => '35',
         ),
         'A_SI_T_P_L' => array(
-            'label' => 'API testi, oletus paketin pituus (m)',
-            'default' => '0.23',
+            'label' => 'API testi, oletus paketin pituus (cm)',
+            'default' => '23',
         ),
         'A_SI_T_P_H' => array(
-            'label' => 'API testi, oletus paketin korkeus (m)',
-            'default' => '0.03',
+            'label' => 'API testi, oletus paketin korkeus (cm)',
+            'default' => '3',
         ),
         'A_SI_IS_COMPANY' => array(//  `sender_name`
             'label' => 'Onko lähettäjä yritys, 1 = kyllä, 0 = ei.',
