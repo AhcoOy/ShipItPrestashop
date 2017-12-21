@@ -60,7 +60,7 @@ class ShipitApiClient {
      * * @param string $url  API Url
      * @param string $version [optional] API version, defaults to v1.
      */
-    public function __construct(string $key, string $secret, $url, string $version = null) {
+    public function __construct(string $key, string $secret, $url, $version = null) {
         if(!$version) {
 		$version = 'v1';
         }   
