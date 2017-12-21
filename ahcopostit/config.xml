@@ -2,7 +2,7 @@
 <module>
     <name>ahcopostit</name>
     <displayName><![CDATA[Shipit]]></displayName>
-    <version><![CDATA[1.0]]></version>
+    <version><![CDATA[1.0.1]]></version>
     <description><![CDATA[Shipit osoitekortti moduuli]]></description>
     <author><![CDATA[Ahco / Heikki Pals]]></author>
     <tab><![CDATA[shipping_logistics]]></tab>

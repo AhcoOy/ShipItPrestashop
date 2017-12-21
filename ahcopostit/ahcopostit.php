@@ -1342,7 +1342,7 @@ class ahcopostit extends Module {
                     . '</option>';
         }
         $html .= '</select>';
-        $html .= ' <input type="submit" name="_updateServices" value="' . $this->l('Päivittää toimituspalvelut ja noutopisteiden valikot') . '" >' . "\n\t";
+        $html .= ' <input type="submit" name="_updateServices" value="' . $this->l('Päivitä toimituspalvelut ja noutopisteiden valikot') . '" >' . "\n\t";
         $html .= '</td>'
                 . '</tr>' . "\n\t";
 
