@@ -82,7 +82,7 @@ class ShipitApiClient {
      *
      * @return $this
      */
-    public function payload(array $payload = []): ShipitApiClient {
+     public function payload(array $payload = []){	
         $this->payload = (array) $payload;
 
         return $this;
@@ -95,7 +95,7 @@ class ShipitApiClient {
      *
      * @return array Array with request details and response header and body.
      */
-    public function post(string $endpoint): array {
+    public function post(string $endpoint) {
         $this->method = self::METHOD_POST;
 
         return $this->execute(
@@ -114,7 +114,7 @@ class ShipitApiClient {
      *
      * @return array Array with request details and response header and body.
      */
-    public function put(string $endpoint): array {
+    public function put(string $endpoint) {
         return $this->execute(
                         $endpoint, [
                     CURLOPT_POST => true,
@@ -131,7 +131,7 @@ class ShipitApiClient {
      *
      * @return array Array with request details and response header and body.
      */
-    public function get(string $endpoint): array {
+    public function get(string $endpoint) {
         $this->method = self::METHOD_GET;
         $query = http_build_query($this->payload);
 
@@ -146,7 +146,7 @@ class ShipitApiClient {
      *
      * @return array Array with request details and response header and body.
      */
-    public function execute(string $endpoint, array $options = []): array {
+    public function execute(string $endpoint, array $options = []) {
         $url = $this->url . $this->version . "/" . $endpoint;
         $ch = curl_init();
         $options = array_replace_recursive(
@@ -191,7 +191,7 @@ class ShipitApiClient {
      *
      * @return array
      */
-    protected function parseHeader($header): array {
+    protected function parseHeader($header) {
         $headerArray = explode("\r\n", $header);
         $result = [];
 
@@ -213,7 +213,7 @@ class ShipitApiClient {
      * Calculate payload checksum.
      * @return string
      */
-    protected function calculateChecksum(): string {
+    protected function calculateChecksum() {
         return hash("sha512", json_encode($this->payload) . $this->secret);
     }
 
