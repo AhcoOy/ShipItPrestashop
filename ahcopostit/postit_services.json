@@ -19,6 +19,10 @@
                 {
                     "service_name": "Lähellä-paketti",
                     "service_code": "mh.mh80"
+                },
+                {
+                    "service_name": "XXS-paketti",
+                    "service_code": "mh.mh84"
                 }
             ]
         },

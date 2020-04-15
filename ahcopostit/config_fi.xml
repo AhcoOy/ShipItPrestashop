@@ -3,7 +3,7 @@
 	<name>ahcopostit</name>
 	<displayName><![CDATA[Shipit]]></displayName>
 	<version><![CDATA[1.0.0]]></version>
-	<description><![CDATA[Shipit toimitustapamoduuli></description>
+	<description><![CDATA[Shipit toimitustapamoduuli]]></description>
 	<author><![CDATA[Ahco Oy]]></author>
 	<tab><![CDATA[shipping_logistics]]></tab>
 	<is_configurable>1</is_configurable>

@@ -40,7 +40,7 @@ class ahcopostit extends Module {
             'default' => '', // e.g. H$?dzzKrqER+FD*AkRx&I*V"kedekQ=t
         ),
         'A_SI_API_URL' => array(
-            'label' => 'Shipit API URL. Tuotantoosoite on https://api.shipit.ax .',
+            'label' => 'Shipit API URL. Tuotantoosoite on https://api.shipit.ax/ . Testiosoite on http://apitest.shipit.ax/',
             'default' => 'https://api.shipit.ax/', //http://apitest.shipit.ax/  , https://api.shipit.ax/
             'required' => true,
         ),
@@ -146,6 +146,12 @@ class ahcopostit extends Module {
     );
 
     /**
+     * Cache for $buyer Selected Delivery Point
+     * @var type 
+     */
+    protected $buyerSelectedDeliveryPoint = array();
+
+    /**
      *
      * @var type array representation of data to be sent in json to ship it api url;
      */
@@ -159,7 +165,7 @@ class ahcopostit extends Module {
     public function __construct() {
         $this->name = 'ahcopostit';
         $this->tab = 'shipping_logistics';
-        $this->version = '1.0.1';
+        $this->version = '1.1';
         $this->author = 'Ahco / Heikki Pals';
         $this->need_instance = 0;
         $this->displayName = $this->l('Shipit');
@@ -548,7 +554,10 @@ class ahcopostit extends Module {
      * @param type $postItShipment array
      * @return boolean
      */
-    public function getServiceList($postItShipment) {
+    public function getServiceList($postItShipment, $idCart = null) {
+        $this->debug(array(__FUNCTION__, __LINE__,
+            compact('postItShipment', 'idCart')
+        ));
 
         $shippingMethods = $this->getShippingMethods($postItShipment['sender']['postcode'], $postItShipment['sender']['country'], $postItShipment['receiver']['postcode'], $postItShipment['receiver']['country']
                 , $postItShipment['parcels'][0]['type'], $postItShipment['parcels'][0]['weight'], $postItShipment['parcels'][0]['width'], $postItShipment['parcels'][0]['length'], $postItShipment['parcels'][0]['height']
@@ -576,17 +585,56 @@ class ahcopostit extends Module {
             $shipItservices['partner_pickup_locations'][] = $pup;
         }
 
-
-        if (sizeof($shipItservices['partners'])) {
-            return $shipItservices;
+        if (!isset($shipItservices['partners']) || sizeof($shipItservices['partners']) == 0) {
+            // fall back to local file, which should return all available services.
+            $fallBackFile = dirname(__FILE__) . '/postit_services.json';
+            $shipItservicesJson = file_get_contents($fallBackFile);
+            $shipItservices = json_decode($shipItservicesJson, true);
+            if (!$shipItservices) {
+                return false;
+            }
+            $this->debug(array(__FUNCTION__, __LINE__,
+                'fall back to local file, which should return all available services.',
+                compact('fallBackFile', 'hipItservicesJson', 'shipItservices')
+            ));
         }
 
+        if ($idCart) {
+            $selectedDeliveryPoint = $this->getCustomerSavedCartDeliveryPointSelection($idCart);
+            $selectedDeliveryPointString = '';
+            if (isset($selectedDeliveryPoint['service_data']['customer_selected_location']['name'])) {
+                $selectedDeliveryPointString .= $selectedDeliveryPoint['service_data']['customer_selected_location']['name']
+                        . ', '
+                        . $selectedDeliveryPoint['service_data']['customer_selected_location']['address1']
+                        . ', '
+                        . $selectedDeliveryPoint['service_data']['customer_selected_location']['zipcode']
+                        . ', '
+                        . $selectedDeliveryPoint['service_data']['customer_selected_location']['city']
+                        . ', '
+                        . $selectedDeliveryPoint['service_data']['customer_selected_location']['countryCode']
+                ;
+            }
+            $shipItservices['partners'][] = array(
+                'partner_name' => 'Ostajan Valinta: '
+                . htmlspecialchars($selectedDeliveryPoint['service_data']['carrier']
+                        . ',  '
+                        . $selectedDeliveryPoint['service_data']['serviceName']
+                        . ', '
+                        . $selectedDeliveryPointString
+                ),
+                'services' => array(
+                    0 => array(
+                        'service_name' => $selectedDeliveryPoint['service_data']['serviceName'] . ' ',
+                        'service_code' => $selectedDeliveryPoint['service_data']['serviceId']
+                    )
+                )
+            );
+            $shipItservices['partner_pickup_locations'][] = $selectedDeliveryPoint['service_data']['customer_selected_location'];
 
-        // fall back to local file, which should return all available services.
-        $shipItservicesJson = file_get_contents(dirname(__FILE__) . '/postit_services.json');
-        $shipItservices = json_decode($shipItservicesJson, true);
-        if (!$shipItservices) {
-            return false;
+            $this->debug(array(__FUNCTION__, __LINE__,
+                'Injecting buyer selection into service selection',
+                compact('selectedDeliveryPoint', 'shipItservices')
+            ));
         }
 
         return $shipItservices;
@@ -1023,7 +1071,18 @@ class ahcopostit extends Module {
      *
      */
     public function hookAdminOrder($params) {
-        $html = '<h2>' . htmlspecialchars($this->l('Ship It osoitekortti')) . '</h2>' . "\n\t";
+        $html = '<div class="panel">'
+                . '<div class="panel-heading" > '
+                . '<i class="icon-truck" title="Moduulille tuki: info@ahco.fi"> &nbsp; &nbsp; Shipit osoitekortti</i>'
+                . '</div>'
+                . $this->_hookAdminOrder($params)
+                . '</div>';
+
+        return $html;
+    }
+
+    protected function _hookAdminOrder($params) {
+        $html = '<h2>' . htmlspecialchars($this->l('Hae Ship It osoitekortti')) . '</h2>' . "\n\t";
 
         $this->removePdfIfRequested($html);
         $this->deliverDebugMessageIfRequested($html);
@@ -1042,7 +1101,9 @@ class ahcopostit extends Module {
             return null;
         }
 
-        if (!($shipItservices = $this->getServiceList($posted['shipit']))) {
+        $O = new Order($params['id_order']);
+
+        if (!($shipItservices = $this->getServiceList($posted['shipit'], $O->id_cart))) {
             return $html . '<p class="error">' . $this->l('Moduuli tai rajapinta ei toimi. Ota yhteyttä moduulin toimittajaan tai Ship It edustajaan') . '</p>';
         }
 
@@ -1208,7 +1269,7 @@ class ahcopostit extends Module {
                 . '<td>';
         $html .= '<table>' . "\n\t";
 
-        for ($np = 0; $np < 1; $np++) {
+        for ($np = 0; $np < 3; $np++) {
             ////////// tyyppi
             $html .= '  <tr>' . "\n\t";
             $html .= '          <td>' . "\n\t";
@@ -1459,9 +1520,68 @@ class ahcopostit extends Module {
             )
         );
 
+        $selection = $this->getCustomerSavedCartDeliveryPointSelection($prestashopOrder->id_cart);
+        if ($selection && isset($selection['service_data_json'])) {
+            $selectionData = json_decode($selection['service_data_json'], true);
+            $this->debug(array(__FUNCTION__, __LINE__, 'selectionData' => $selectionData));
+            $proposed['shipit']['serviceId'] = $selectionData['serviceId'];
+            $proposed['shipit']['pickupId'] = $selectionData['customer_selected_location']['id'];
+        }
+
         $this->debug(array(__FUNCTION__, __LINE__, 'proposed' => $proposed));
 
         return $proposed;
+    }
+
+    /**
+     * 
+     * Supporting Ahco ship it pickup courier module
+     * 
+     * @param type $id_cart
+     */
+    public function getCustomerSavedCartDeliveryPointSelection($id_cart) {
+        if (!$id_cart || !is_numeric($id_cart) || ( $id_cart == 0)) {
+            $this->debug(array(
+                'function' => __FUNCTION__ . '()',
+                __FILE__,
+                'id_cart' => $id_cart,
+                ' invalid cart  id ',
+            ));
+            return false;
+        }
+
+        if (isset($this->buyerSelectedDeliveryPoint[$id_cart])) {
+            return $this->buyerSelectedDeliveryPoint[$id_cart];
+        }
+
+
+        $sql = " SELECT * FROM `" . _DB_PREFIX_ . "_ahco_ship_it_cart_couriers` WHERE `id_cart` =  " . (int) $id_cart . ' LIMIT 1 ';
+        ;
+        try {
+            $returnResult = Db::getInstance()->ExecuteS($sql);
+        } catch (Exception $ex) {
+            $returnResult = false;
+        }
+
+
+        if (isset($returnResult[0])) {
+            $returnResult = $returnResult[0];
+            $returnResult['service_data'] = json_decode($returnResult['service_data_json'], true);
+        } else {
+            $returnResult = false;
+        }
+
+        $this->debug(array(
+            'function' => __FUNCTION__ . '()',
+            __FILE__,
+            'id_cart' => $id_cart,
+            'sql' => $sql,
+            'returnResult' => $returnResult,
+        ));
+
+        $this->buyerSelectedDeliveryPoint[$id_cart] = $returnResult;
+
+        return $this->buyerSelectedDeliveryPoint[$id_cart];
     }
 
 }
