@@ -165,7 +165,7 @@ class ahcopostit extends Module {
     public function __construct() {
         $this->name = 'ahcopostit';
         $this->tab = 'shipping_logistics';
-        $this->version = '1.1';
+        $this->version = '1.2.1';
         $this->author = 'Ahco / Heikki Pals';
         $this->need_instance = 0;
         $this->displayName = $this->l('Shipit');
@@ -295,6 +295,26 @@ class ahcopostit extends Module {
     }
 
     /**
+     * https://devdocs.prestashop.com/1.7/modules/sample-modules/order-view-page-new-hooks/
+     * 
+     */
+    public function installHooks() {
+        if (version_compare(_PS_VERSION_, '1.7.7.0') >= 0) {
+            $hooks = array('displayAdminOrderMain', 'displayBackOfficeTop');
+            $ret = $this->registerHook($hooks);
+            $this->debug(array(__FUNCTION__ => compact('hooks', 'ret')));
+            return $ret;
+        }
+
+        if (!$this->registerHook('adminOrder')) {
+            return false;
+        }
+        if (!$this->registerHook('displayBackOfficeTop')) {
+            return false;
+        }
+    }
+
+    /**
      *
      * @return <type>
      *
@@ -310,12 +330,11 @@ class ahcopostit extends Module {
             return false;
         }
 
-        if (!$this->registerHook('adminOrder')) {
+
+        if (!$this->installHooks()) {
             return false;
         }
-        if (!$this->registerHook('displayBackOfficeTop')) {
-            return false;
-        }
+
         foreach ($this->mySettings as $key => $sData) {
             Configuration::updateValue($key, $sData['default']);
         }
@@ -935,15 +954,15 @@ class ahcopostit extends Module {
             case '1.7':
             case '1.6':
             case '1.5':
-                if (!Context::getContext()->link) {
-                    Context::getContext()->link = new Link();
-                }
-                $webFormPostUrl = Context::getContext()->link->getAdminLink('AdminOrders') . '&id_order=' . urlencode($orderId) . '&vieworder=1';
-                if (isset($_GET['ahcodebug'])) {
-                    $webFormPostUrl .= '&ahcodebug=1';
-                }
-
-                $button = '<form action="' . $webFormPostUrl . '"  method="POST">';
+                // if (!Context::getContext()->link) {
+                //     Context::getContext()->link = new Link();
+                // }
+                //$webFormPostUrl = Context::getContext()->link->getAdminLink('AdminOrders') . '&id_order=' . urlencode($orderId) . '&vieworder=1';
+                // if (isset($_GET['ahcodebug'])) {
+                //     $webFormPostUrl .= '&ahcodebug=1';
+                //}
+                //$button = '<form action="' . $webFormPostUrl . '"  method="POST">';
+                $button = '<form method="POST">';
                 $button .= '<input type="hidden" name="shipIt[deleteId]" value="' . (int) $dbId . '"  >';
                 $button .= '<input type="submit" name="shipIt[delete]" value="' . $this->l('Poista PDF -asiakirja') . '"  >';
                 $button .= '</form>';
@@ -1027,9 +1046,6 @@ class ahcopostit extends Module {
      *
      */
     protected function outputPdfFile() {
-
-
-        // if ($_GET['controller'] == 'adminorders')
         if (isset($_GET['vieworder']) && isset($_GET['id_order']) && isset($_GET['display_shipit_pdf'])) {
 
             $db = Db::getInstance();
@@ -1037,9 +1053,10 @@ class ahcopostit extends Module {
             $pdf = $db->ExecuteS('SELECT pdf_base64 FROM ' . _DB_PREFIX_ . '_ahco_ship_it_shipments WHERE id  = '
                     . (int) $_GET['display_shipit_pdf']
                     . '  LIMIT 1');
-
+            ob_end_clean();
             if (!$pdf) {
-                
+                echo $this->l('Ups, osoitekorttia ei löytynyt. Osoitkortti on mahdollisesti jo poistettu. ');
+                exit();
             }
 
             header('Content-Type: application/pdf');
@@ -1063,26 +1080,48 @@ class ahcopostit extends Module {
     }
 
     /**
+     *  Since Prestashop 1.7.7.0
+     * 
+     * @param type $params
+     * @return type
+     */
+    public function hookDisplayAdminOrderMain($params) {
+        return $this->hookAdminOrder($params);
+    }
+
+    /**
      *  http://doc.prestashop.com/display/PS15/Hooks+in+PrestaShop+1.5
-     *  Prestashop 1.6
+     * Since   Prestashop 1.5
      * @global <type> $smarty
      * @param <type> $params
      * @return string
      *
      */
     public function hookAdminOrder($params) {
-        $html = '<div class="panel">'
-                . '<div class="panel-heading" > '
-                . '<i class="icon-truck" title="Moduulille tuki: info@ahco.fi"> &nbsp; &nbsp; Shipit osoitekortti</i>'
-                . '</div>'
-                . $this->_hookAdminOrder($params)
-                . '</div>';
 
+        $html = ' <div class="panel card mt-2">
+                    <div class="card-header panel-heading"> 
+                    <h3 class="card-header-title"> 
+                    <i class="icon-truck" title="Moduulille tuki: info@ahco.fi">
+                    &nbsp;
+                   </i>
+            ' . htmlspecialchars($this->l('Hae Ship It osoitekortti'))
+                . '</h3>'
+                . '</div>'
+                . ' <div class="card-body">'
+                . $this->_hookAdminOrder($params)
+                . '</div>'  // panel  card body end
+                . '</div>';  // panel end
         return $html;
     }
 
     protected function _hookAdminOrder($params) {
-        $html = '<h2>' . htmlspecialchars($this->l('Hae Ship It osoitekortti')) . '</h2>' . "\n\t";
+        $html = '';
+
+
+
+        ;
+        //$html .= '<h2>' . htmlspecialchars($this->l('Hae Ship It osoitekortti')) . '</h2>' . "\n\t";
 
         $this->removePdfIfRequested($html);
         $this->deliverDebugMessageIfRequested($html);
@@ -1104,7 +1143,7 @@ class ahcopostit extends Module {
         $O = new Order($params['id_order']);
 
         if (!($shipItservices = $this->getServiceList($posted['shipit'], $O->id_cart))) {
-            return $html . '<p class="error">' . $this->l('Moduuli tai rajapinta ei toimi. Ota yhteyttä moduulin toimittajaan tai Ship It edustajaan') . '</p>';
+            return '<p class="error">' . $this->l('Moduuli tai rajapinta ei toimi. Ota yhteyttä moduulin toimittajaan tai Ship It edustajaan') . '</p>';
         }
 
         $this->getPrestashopOrderRelatedShipItPdfs($params['id_order'], $html);
@@ -1444,6 +1483,8 @@ class ahcopostit extends Module {
             $html .= '<pre>' . print_r(self::$debug, true) . '</pre>';
             ;
         }
+
+
 
         return $html;
     }
